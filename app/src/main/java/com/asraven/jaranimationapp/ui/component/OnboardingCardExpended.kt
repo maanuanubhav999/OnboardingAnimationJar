@@ -1,16 +1,12 @@
 package com.asraven.jaranimationapp.ui.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,16 +32,11 @@ fun OnboardingCardExpended(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(enabled = onClick != null) { onClick?.invoke() },
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
+
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .height(444.dp)
+                .clip(RoundedCornerShape(28.dp))
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
@@ -54,6 +45,7 @@ fun OnboardingCardExpended(
                         )
                     )
                 )
+
         ) {
             // Image with rounded corners
             AsyncImage(
@@ -90,7 +82,7 @@ fun OnboardingCardExpended(
 
             }
         }
-    }
+
 }
 
 // Usage example
