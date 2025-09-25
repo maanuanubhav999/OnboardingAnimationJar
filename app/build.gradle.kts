@@ -67,4 +67,11 @@ dependencies {
     //image
     implementation(libs.coil3.coil.compose)
     implementation(libs.coil.network.okhttp)
+
+    implementation(libs.retrofit)
+    implementation(libs.converter.kotlinx.serialization)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+//    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+
 }
