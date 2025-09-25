@@ -1,6 +1,6 @@
 package com.asraven.jaranimationapp.data.remote
 
-data class AnimationResponse(
+data class OnboardingApiResponse(
     val `data`: Data?,
     val success: Boolean?
 )

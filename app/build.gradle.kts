@@ -38,6 +38,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -69,6 +70,7 @@ dependencies {
     implementation(libs.coil.network.okhttp)
 
     implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
     implementation(libs.converter.kotlinx.serialization)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
