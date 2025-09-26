@@ -1,40 +1,75 @@
 package com.asraven.jaranimationapp
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.asraven.jaranimationapp.data.remote.EducationCard
+import com.asraven.jaranimationapp.domain.usecase.GetEducationMetadataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
+    private val getEducationMetadataUseCase: GetEducationMetadataUseCase // Inject the use case
 ) : ViewModel() {
 
-
     private val _uiState: MutableStateFlow<MainActivityUiState> = MutableStateFlow(
-        MainActivityUiState(      listOf(
-            CardData(1, "Adventure Awaits", "Discover breathtaking landscapes and hidden gems around the world. From mountain peaks to ocean depths, every journey tells a story worth sharing.", "https://img.myjar.app/yXXRNLKGxWkoWRyyzurnZr3UJNHbqVaCHiLk1VYGlDM/rs:fit:0:0/q:60/format:webp/plain/https://cdn.myjar.app/Homefeed/engagement_card/buyGoldEducation2.webp"),
-            CardData(2, "Culinary Delights", "Explore flavors from different cultures and master the art of cooking. Each recipe is a gateway to understanding traditions and creating memorable experiences.", "https://img.myjar.app/yXXRNLKGxWkoWRyyzurnZr3UJNHbqVaCHiLk1VYGlDM/rs:fit:0:0/q:60/format:webp/plain/https://cdn.myjar.app/Homefeed/engagement_card/buyGoldEducation2.webp"),
-            CardData(3, "Tech Innovation", "Stay ahead with the latest technology trends and breakthroughs. Innovation shapes our future and transforms the way we live, work, and connect.", "https://img.myjar.app/yXXRNLKGxWkoWRyyzurnZr3UJNHbqVaCHiLk1VYGlDM/rs:fit:0:0/q:60/format:webp/plain/https://cdn.myjar.app/Homefeed/engagement_card/buyGoldEducation2.webp"),
-            CardData(4, "Wellness Journey", "Embrace a healthier lifestyle with mindful practices and balanced living. Your well-being is the foundation for achieving all your dreams and aspirations.", "https://img.myjar.app/yXXRNLKGxWkoWRyyzurnZr3UJNHbqVaCHiLk1VYGlDM/rs:fit:0:0/q:60/format:webp/plain/https://cdn.myjar.app/Homefeed/engagement_card/buyGoldEducation2.webp"),
-            CardData(5, "Creative Arts", "Express yourself through various forms of artistic creation. Art has the power to inspire, heal, and bring people together across all boundaries.", "https://img.myjar.app/fLqaeBj3sX4VtpjdRrj2_HxHPJ4YmqaFX9jPcm563cc/rs:fit:0:0/q:60/format:webp/plain/https://cdn.myjar.app/Homefeed/engagement_card/buyGoldEducation3.webp")
-        )),
+        MainActivityUiState()
     )
     val uiState: StateFlow<MainActivityUiState> = _uiState.asStateFlow()
 
+    init {
+         fetchEducationData()
+    }
 
+    fun fetchEducationData() {
+        _uiState.update { it.copy(isLoadingEducationData = true, educationDataError = null) }
+
+        viewModelScope.launch { // Use viewModelScope for coroutines tied to ViewModel lifecycle
+            getEducationMetadataUseCase()
+                .onEach { result ->
+                    result.fold(
+                        onSuccess = { onboardingApiResponse ->
+
+                            _uiState.update {
+                                it.copy(
+                                    educationItems = onboardingApiResponse.data?.manualBuyEducationData?.educationCardList ?: emptyList(), // Directly assign if it's List<EducationItem>
+                                    educationDataError = null
+                                )
+                            }
+                        },
+                        onFailure = { throwable ->
+                            _uiState.update {
+                                it.copy(
+                                    isLoadingEducationData = false,
+                                    educationDataError = throwable
+                                )
+                            }
+                        }
+                    )
+                }
+                .catch { exception -> // Catch exceptions from the flow itself (e.g., if use case throws directly)
+                    _uiState.update {
+                        it.copy(
+                            isLoadingEducationData = false,
+                            educationDataError = exception
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
+        }
+    }
 }
 
-
-
 data class MainActivityUiState(
-    val cards : List<CardData> = listOf()
-)
-
-data class CardData(
-    val id: Int,
-    val title: String,
-    val description: String,
-    val image: String
+    val educationItems: List<EducationCard> = emptyList(),
+    val isLoadingEducationData: Boolean = false,
+    val educationDataError: Throwable? = null
 )
