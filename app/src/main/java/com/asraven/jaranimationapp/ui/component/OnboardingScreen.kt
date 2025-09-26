@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,75 +42,84 @@ fun OnboardingScreen(
     paddingValues: PaddingValues,
     viewModel: MainActivityViewModel = hiltViewModel()
 ) {
-    val cards = viewModel.uiState.collectAsStateWithLifecycle().value.educationItems
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val cards = uiState.educationItems
+    val introData = uiState.intro
+
     var currentExpandedIndex by remember { mutableIntStateOf(0) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
+    var showIntro by remember(introData) { mutableStateOf(introData?.title != null) } // Show intro if title exists
 
     SharedTransitionLayout {
         Box(
             modifier = Modifier
-                .padding(paddingValues)
                 .fillMaxSize()
                 .background(cards.getOrNull(currentExpandedIndex)?.backGroundColor.toComposeColorOrUnspecified())
+                .padding(paddingValues)
+
         ) {
-            AnimatedContent(
-                targetState = currentExpandedIndex,
-                label = "onboardingCardTransition",
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(300)) togetherWith
-                            fadeOut(animationSpec = tween(300))
-                }
-            ) { targetIndex ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                onDragEnd = {
-                                    val threshold = 100f
-                                    when {
-                                        dragOffset > threshold && currentExpandedIndex > 0 -> {
-                                            currentExpandedIndex -= 1
-                                        }
+            if (showIntro && introData != null) {
+                IntroDisplay(
+                    introData = introData,
+                    onDismiss = { showIntro = false }
+                )
+            } else {
+                AnimatedContent(
+                    targetState = currentExpandedIndex,
+                    label = "onboardingCardTransition",
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(300)) togetherWith
+                                fadeOut(animationSpec = tween(300))
+                    }
+                ) { targetIndex ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectDragGestures(
+                                    onDragEnd = {
+                                        val threshold = 100f
+                                        when {
+                                            dragOffset > threshold && currentExpandedIndex > 0 -> {
+                                                currentExpandedIndex -= 1
+                                            }
 
-                                        dragOffset < -threshold && currentExpandedIndex < cards.size - 1 -> {
-                                            currentExpandedIndex += 1
+                                            dragOffset < -threshold && currentExpandedIndex < cards.size - 1 -> {
+                                                currentExpandedIndex += 1
+                                            }
                                         }
+                                        dragOffset = 0f
                                     }
-                                    dragOffset = 0f
+                                ) { _, dragAmount ->
+                                    dragOffset += dragAmount.y
                                 }
-                            ) { _, dragAmount ->
-                                dragOffset += dragAmount.y
                             }
-                        }
-                ) {
-                    // Sticky headers for previous cards
-                    StickyHeaders2(
-                        cards = cards,
-                        currentExpandedIndex = targetIndex,
-                        onCardClick = { index ->
-                            currentExpandedIndex = index
-                        },
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedVisibilityScope = this@AnimatedContent
-                    )
+                    ) {
+                        StickyHeaders2(
+                            cards = cards,
+                            currentExpandedIndex = targetIndex,
+                            onCardClick = { index ->
+                                currentExpandedIndex = index
+                            },
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                            animatedVisibilityScope = this@AnimatedContent,
+                        )
 
-                    // Main content area - only shows the current expanded card
-                    if (cards.isNotEmpty()) { // Ensure cards list is not empty
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .padding(horizontal = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            OnboardingCardExpended(
-                                cardData = cards[targetIndex],
-                                onClick = { /* Handle click */ },
-                                modifier = Modifier.fillMaxWidth(),
-                                sharedTransitionScope = this@SharedTransitionLayout,
-                                animatedVisibilityScope = this@AnimatedContent
-                            )
+                        if (cards.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                                    .padding(horizontal = 16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                OnboardingCardExpended(
+                                    cardData = cards[targetIndex],
+                                    modifier = Modifier.fillMaxWidth(),
+                                    sharedTransitionScope = this@SharedTransitionLayout,
+                                    animatedVisibilityScope = this@AnimatedContent,
+                                )
+                            }
                         }
                     }
                 }
@@ -125,24 +135,21 @@ fun StickyHeaders2(
     currentExpandedIndex: Int,
     onCardClick: (Int) -> Unit,
     sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope
+    animatedVisibilityScope: AnimatedVisibilityScope,
 ) {
     if (currentExpandedIndex > 0) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-//                .zIndex(2f)
         ) {
             cards.take(currentExpandedIndex).forEachIndexed { index, card ->
                 OnBoardingCardFolded(
                     cardData = card,
                     onClick = { onCardClick(index) },
                     sharedTransitionScope = sharedTransitionScope,
-                    animatedVisibilityScope = animatedVisibilityScope
+                    animatedVisibilityScope = animatedVisibilityScope,
                 )
             }
-
-
         }
     }
 }

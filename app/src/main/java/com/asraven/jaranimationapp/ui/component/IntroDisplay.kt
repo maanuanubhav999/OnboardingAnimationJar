@@ -31,7 +31,6 @@ fun IntroDisplay(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.8f)) // Example background
             .clickable { onDismiss() } // Dismiss on click
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
