@@ -36,9 +36,8 @@ import com.asraven.jaranimationapp.utils.toComposeColorOrUnspecified
 fun OnboardingCardExpended(
     modifier: Modifier = Modifier,
     cardData: EducationCard,
-    onClick: (() -> Unit)? = null,
     sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope
+    animatedVisibilityScope: AnimatedVisibilityScope,
 ) {
 
     val gradientColors = listOf(
@@ -109,7 +108,6 @@ fun OnboardingCardExpended(
     }
 }
 
-// Usage example
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = true)
 @Composable

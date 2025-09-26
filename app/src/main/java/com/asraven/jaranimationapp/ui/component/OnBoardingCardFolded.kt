@@ -147,17 +147,5 @@ fun OnBoardingCardFolded(
 @Preview(showBackground = true)
 @Composable
 fun GoldPurchaseCardPreview() {
-    /*
-    SharedTransitionLayout {
-        AnimatedContent(targetState = false, label = "") { targetState ->
-            OnBoardingCardFolded(
-                cardData = CardData("1", "https://example.com/some-image.jpg", "Buy gold anytime, anywhere", "Description"),
-                onClick = { /* Handle click */ },
-                sharedTransitionScope = this@SharedTransitionLayout,
-                animatedVisibilityScope = this@AnimatedContent
-            )
-        }
-    }
-    */
     Text("Preview not available for shared elements in isolation. See OnboardingScreen preview.")
 }
