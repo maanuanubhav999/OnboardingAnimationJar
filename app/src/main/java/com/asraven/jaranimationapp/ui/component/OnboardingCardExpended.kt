@@ -45,7 +45,6 @@ fun OnboardingCardExpended(
         cardData.endGradient.toComposeColorOrUnspecified()
     )
 
-    val borderColor = cardData.strokeStartColor.toComposeColorOrUnspecified()
     with(sharedTransitionScope) {
         Column(
             modifier = modifier
@@ -62,7 +61,12 @@ fun OnboardingCardExpended(
                 )
                 .border(
                     width = 1.dp,
-                    color = borderColor,
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            cardData.strokeStartColor.toComposeColorOrUnspecified(),
+                            cardData.strokeEndColor.toComposeColorOrUnspecified()
+                        )
+                    ),
                     shape = RoundedCornerShape(28.dp)
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
