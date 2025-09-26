@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -34,6 +35,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.asraven.jaranimationapp.MainActivityViewModel
 import com.asraven.jaranimationapp.data.remote.EducationCard
+import com.asraven.jaranimationapp.data.remote.SaveButtonCta
+// Assuming introData might be of type ManualBuyEducationData which contains saveButtonCta
+// import com.asraven.jaranimationapp.data.remote.ManualBuyEducationData
 import com.asraven.jaranimationapp.utils.toComposeColorOrUnspecified
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -44,11 +48,19 @@ fun OnboardingScreen(
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val cards = uiState.educationItems
-    val introData = uiState.intro
+    val introData = uiState.intro // Assuming introData is of a type that has .saveButtonCta and .title
 
     var currentExpandedIndex by remember { mutableIntStateOf(0) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var showIntro by remember(introData) { mutableStateOf(introData?.title != null) } // Show intro if title exists
+
+    val shouldShowCta by remember(currentExpandedIndex) {
+        derivedStateOf {
+            val isLastCard = cards.isNotEmpty() && currentExpandedIndex == cards.size - 1
+            val ctaAvailable = uiState.saveButtonCta != null
+            isLastCard && ctaAvailable
+        }
+    }
 
     SharedTransitionLayout {
         Box(
@@ -123,6 +135,16 @@ fun OnboardingScreen(
                         }
                     }
                 }
+            }
+
+            if (shouldShowCta){
+                FloatingButton(
+                    text = uiState.saveButtonCta?.text ?: "",
+                    onClick = { /* Handle CTA click */ },
+                    backGroundColor = uiState.saveButtonCta?.backgroundColor.toComposeColorOrUnspecified(),
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    textColor = uiState.saveButtonCta?.textColor.toComposeColorOrUnspecified()
+                )
             }
         }
     }
