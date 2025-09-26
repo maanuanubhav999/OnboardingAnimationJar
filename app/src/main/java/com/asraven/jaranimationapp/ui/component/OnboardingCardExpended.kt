@@ -1,5 +1,8 @@
 package com.asraven.jaranimationapp.ui.component
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,17 +27,24 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.asraven.jaranimationapp.data.remote.EducationCard
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun OnboardingCardExpended(
-    imageUrl: String,
-    title: String,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null
+    cardData: EducationCard,
+    onClick: (() -> Unit)? = null,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
-
+    with(sharedTransitionScope) {
         Box(
-            modifier = Modifier
+            modifier = modifier
+                .sharedBounds(
+                    rememberSharedContentState(key = "card-${cardData.hashCode()}"),
+                    animatedVisibilityScope = animatedVisibilityScope
+                )
                 .height(444.dp)
                 .clip(RoundedCornerShape(28.dp))
                 .background(
@@ -50,11 +60,15 @@ fun OnboardingCardExpended(
             // Image with rounded corners
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl)
+                    .data(cardData.image)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
                 modifier = Modifier
+                    .sharedElement(
+                        rememberSharedContentState(key = "image-${cardData.hashCode()}"),
+                        animatedVisibilityScope = animatedVisibilityScope
+                    )
                     .fillMaxWidth()
                     .height(340.dp)
                     .padding(16.dp)
@@ -71,32 +85,27 @@ fun OnboardingCardExpended(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = title,
+                    text = cardData.expandStateText ?: "",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontSize = 20.sp,
                         lineHeight = 28.sp,
                         fontWeight = FontWeight.Bold
                     ),
                     color = Color.White,
+                    modifier = Modifier.sharedElement(
+                        rememberSharedContentState(key = "title-${cardData.hashCode()}"),
+                        animatedVisibilityScope = animatedVisibilityScope
+                    )
                 )
-
             }
-        }
-
-}
-
-// Usage example
-@Preview(showBackground = true)
-@Composable
-fun FinancialCardPreview() {
-    MaterialTheme {
-        OnboardingCardExpended(
-            imageUrl = "https://example.com/financial-image.jpg",
-            title = "Save your extra cash,",
-            modifier = Modifier.padding(16.dp)
-        ) {
-            // Handle click
         }
     }
 }
 
+// Usage example
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Preview(showBackground = true)
+@Composable
+fun FinancialCardPreview() {
+    Text("Preview not available for shared elements in isolation. See OnboardingScreen preview.")
+}

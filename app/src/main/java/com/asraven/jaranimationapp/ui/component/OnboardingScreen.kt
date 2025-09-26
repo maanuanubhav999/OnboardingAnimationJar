@@ -1,6 +1,15 @@
 package com.asraven.jaranimationapp.ui.component
 
-
+import android.util.Log
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
@@ -16,88 +25,103 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.asraven.jaranimationapp.CardData
 import com.asraven.jaranimationapp.MainActivityViewModel
+import com.asraven.jaranimationapp.data.remote.EducationCard
 
-
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun OnboardingScreen(
     paddingValues: PaddingValues,
     viewModel: MainActivityViewModel = hiltViewModel()
 ) {
-    val cards = viewModel.uiState.collectAsStateWithLifecycle().value.cards
+    val cards = viewModel.uiState.collectAsStateWithLifecycle().value.educationItems
     var currentExpandedIndex by remember { mutableIntStateOf(0) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
 
-    Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragEnd = {
-                            val threshold = 100f
-                            when {
-                                dragOffset > threshold && currentExpandedIndex > 0 -> {
-                                    // Drag down - go to previous card
-                                    currentExpandedIndex -= 1
+    SharedTransitionLayout {
+        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            AnimatedContent(
+                targetState = currentExpandedIndex,
+                label = "onboardingCardTransition",
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) togetherWith
+                            fadeOut(animationSpec = tween(300))
+                }
+            ) { targetIndex ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragEnd = {
+                                    val threshold = 100f
+                                    when {
+                                        dragOffset > threshold && currentExpandedIndex > 0 -> {
+                                            currentExpandedIndex -= 1
+                                        }
+                                        dragOffset < -threshold && currentExpandedIndex < cards.size - 1 -> {
+                                            currentExpandedIndex += 1
+                                        }
+                                    }
+                                    dragOffset = 0f
                                 }
-                                dragOffset < -threshold && currentExpandedIndex < cards.size - 1 -> {
-                                    // Drag up - go to next card
-                                    currentExpandedIndex += 1
-                                }
+                            ) { _, dragAmount ->
+                                dragOffset += dragAmount.y
                             }
-                            dragOffset = 0f
                         }
-                    ) { _, dragAmount ->
-                        dragOffset += dragAmount.y
+                ) {
+                    // Sticky headers for previous cards
+                    StickyHeaders2(
+                        cards = cards,
+                        currentExpandedIndex = targetIndex,
+                        onCardClick = { index ->
+                            currentExpandedIndex = index
+                        },
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@AnimatedContent
+                    )
+
+                    // Main content area - only shows the current expanded card
+                    if (cards.isNotEmpty()) { // Ensure cards list is not empty
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(horizontal = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            OnboardingCardExpended(
+                                cardData = cards[targetIndex],
+                                onClick = { /* Handle click */ },
+                                modifier = Modifier.fillMaxWidth(),
+                                sharedTransitionScope = this@SharedTransitionLayout,
+                                animatedVisibilityScope = this@AnimatedContent
+                            )
+                        }
                     }
                 }
-        ) {
-            // Sticky headers for previous cards
-            StickyHeaders2(
-                cards = cards,
-                currentExpandedIndex = currentExpandedIndex,
-                onCardClick = { index ->
-                    currentExpandedIndex = index
-                }
-            )
-
-            // Main content area - only shows the current expanded card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                OnboardingCardExpended(
-                    imageUrl = cards[currentExpandedIndex].image,
-                    title = cards[currentExpandedIndex].title,
-                    onClick = { /* Handle click */ },
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun StickyHeaders2(
-    cards: List<CardData>,
+    cards: List<EducationCard>,
     currentExpandedIndex: Int,
-    onCardClick: (Int) -> Unit
+    onCardClick: (Int) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     if (currentExpandedIndex > 0) {
         Column(
@@ -110,9 +134,10 @@ fun StickyHeaders2(
         ) {
             cards.take(currentExpandedIndex).forEachIndexed { index, card ->
                 OnBoardingCardFolded(
-                    imageUrl = card.image,
-                    text = card.title,
+                    cardData = card,
                     onClick = { onCardClick(index) },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope
                 )
             }
 
@@ -125,8 +150,6 @@ fun StickyHeaders2(
         }
     }
 }
-
-
 
 @Preview(showBackground = true)
 @Composable
