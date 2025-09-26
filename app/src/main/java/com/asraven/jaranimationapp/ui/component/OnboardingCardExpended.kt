@@ -4,11 +4,12 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,6 +29,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.asraven.jaranimationapp.data.remote.EducationCard
+import com.asraven.jaranimationapp.utils.toComposeColorOrUnspecified
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -38,26 +40,35 @@ fun OnboardingCardExpended(
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
+
+    val gradientColors = listOf(
+        cardData.startGradient.toComposeColorOrUnspecified(),
+        cardData.endGradient.toComposeColorOrUnspecified()
+    )
+
+    val borderColor = cardData.strokeStartColor.toComposeColorOrUnspecified()
     with(sharedTransitionScope) {
-        Box(
+        Column(
             modifier = modifier
                 .sharedBounds(
                     rememberSharedContentState(key = "card-${cardData.hashCode()}"),
                     animatedVisibilityScope = animatedVisibilityScope
                 )
-                .height(444.dp)
+                .wrapContentHeight()
                 .clip(RoundedCornerShape(28.dp))
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF6A4C93), // Purple
-                            Color(0xFF4A90E2)  // Blue
-                        )
+                        colors = gradientColors
                     )
                 )
+                .border(
+                    width = 1.dp,
+                    color = borderColor,
+                    shape = RoundedCornerShape(28.dp)
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
 
         ) {
-            // Image with rounded corners
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(cardData.image)
@@ -74,14 +85,10 @@ fun OnboardingCardExpended(
                     .padding(16.dp)
                     .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
-//                placeholder = painterResource(id = R.drawable.placeholder), // Add your placeholder
-//                error = painterResource(id = R.drawable.error_placeholder) // Add your error placeholder
             )
 
-            // Text content at bottom
             Column(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
                     .padding(16.dp)
             ) {
                 Text(

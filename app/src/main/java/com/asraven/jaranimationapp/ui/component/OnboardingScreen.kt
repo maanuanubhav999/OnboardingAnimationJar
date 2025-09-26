@@ -1,6 +1,5 @@
 package com.asraven.jaranimationapp.ui.component
 
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,11 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.asraven.jaranimationapp.MainActivityViewModel
 import com.asraven.jaranimationapp.data.remote.EducationCard
+import com.asraven.jaranimationapp.utils.toComposeColorOrUnspecified
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -48,7 +46,12 @@ fun OnboardingScreen(
     var dragOffset by remember { mutableFloatStateOf(0f) }
 
     SharedTransitionLayout {
-        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .background(cards.getOrNull(currentExpandedIndex)?.backGroundColor.toComposeColorOrUnspecified())
+        ) {
             AnimatedContent(
                 targetState = currentExpandedIndex,
                 label = "onboardingCardTransition",
@@ -68,6 +71,7 @@ fun OnboardingScreen(
                                         dragOffset > threshold && currentExpandedIndex > 0 -> {
                                             currentExpandedIndex -= 1
                                         }
+
                                         dragOffset < -threshold && currentExpandedIndex < cards.size - 1 -> {
                                             currentExpandedIndex += 1
                                         }
@@ -127,10 +131,7 @@ fun StickyHeaders2(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
-                )
-                .zIndex(2f)
+//                .zIndex(2f)
         ) {
             cards.take(currentExpandedIndex).forEachIndexed { index, card ->
                 OnBoardingCardFolded(
@@ -141,12 +142,7 @@ fun StickyHeaders2(
                 )
             }
 
-            // Subtle divider
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                thickness = 1.dp
-            )
+
         }
     }
 }

@@ -3,6 +3,7 @@ package com.asraven.jaranimationapp.ui.component
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,17 +25,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.toColorInt
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.asraven.jaranimationapp.R
 import com.asraven.jaranimationapp.data.remote.EducationCard
+import com.asraven.jaranimationapp.utils.toComposeColorOrUnspecified
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -46,11 +50,11 @@ fun OnBoardingCardFolded(
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val gradientColors = listOf(
-        Color(cardData.startGradient?.toColorInt() ?: 0xFF00000),
-        Color(cardData.endGradient?.toColorInt() ?: 0xFF00000)
+        cardData.startGradient.toComposeColorOrUnspecified(),
+        cardData.endGradient.toComposeColorOrUnspecified()
     )
 
-    val borderColor = Color(0xFF4A9EFF) // Blue border
+    val borderColor = cardData.strokeStartColor.toComposeColorOrUnspecified()
 
     with(sharedTransitionScope) {
         Box(
@@ -66,7 +70,6 @@ fun OnBoardingCardFolded(
                 .background(
                     brush = Brush.radialGradient(
                         colors = gradientColors,
-                        radius = 800f
                     )
                 )
                 .border(
@@ -74,7 +77,8 @@ fun OnBoardingCardFolded(
                     color = borderColor,
                     shape = RoundedCornerShape(28.dp)
                 )
-                .padding(28.dp)
+                .padding(16.dp)
+
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -110,8 +114,8 @@ fun OnBoardingCardFolded(
                     Text(
                         text = cardData.collapsedStateText ?: "",
                         style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 20.sp
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
                         ),
                         color = Color.White,
                         maxLines = 1,
@@ -126,16 +130,12 @@ fun OnBoardingCardFolded(
                 IconButton(
                     onClick = { onClick() }
                 ) {
-//                    Icon(
-////                        imageVector = Icons.Default.KeyboardArrowDown,
-//                        imageVector = Icons.Filled.KeyboardArrowDown,
-//                        contentDescription = "Expand",
-//                        tint = Color.White,
-//                        modifier = Modifier.size(24.dp)
-//                    )
-                    Box {
-                        Text("^")
-                    }
+                    Image(
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_down_arrow),
+                        contentDescription = "Expand",
+                        modifier = Modifier.size(24.dp)
+                    )
+
                 }
             }
         }
@@ -147,8 +147,6 @@ fun OnBoardingCardFolded(
 @Preview(showBackground = true)
 @Composable
 fun GoldPurchaseCardPreview() {
-    // This Preview will not work correctly without a SharedTransitionLayout ancestor
-    // and proper AnimatedVisibilityScope.
     /*
     SharedTransitionLayout {
         AnimatedContent(targetState = false, label = "") { targetState ->
