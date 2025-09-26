@@ -35,9 +35,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.asraven.jaranimationapp.MainActivityViewModel
 import com.asraven.jaranimationapp.data.remote.EducationCard
-import com.asraven.jaranimationapp.data.remote.SaveButtonCta
-// Assuming introData might be of type ManualBuyEducationData which contains saveButtonCta
-// import com.asraven.jaranimationapp.data.remote.ManualBuyEducationData
 import com.asraven.jaranimationapp.utils.toComposeColorOrUnspecified
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -142,7 +139,7 @@ fun OnboardingScreen(
                     text = uiState.saveButtonCta?.text ?: "",
                     onClick = { /* Handle CTA click */ },
                     backGroundColor = uiState.saveButtonCta?.backgroundColor.toComposeColorOrUnspecified(),
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp),
                     textColor = uiState.saveButtonCta?.textColor.toComposeColorOrUnspecified()
                 )
             }
