@@ -6,6 +6,7 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -84,7 +85,7 @@ fun OnboardingCardExpended(
                         animatedVisibilityScope = animatedVisibilityScope
                     )
                     .fillMaxWidth()
-                    .height(340.dp)
+                    .aspectRatio(0.8f)
                     .padding(16.dp)
                     .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,

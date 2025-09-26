@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +29,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -83,13 +83,9 @@ fun OnBoardingCardFolded(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
                     Box(
                         modifier = Modifier
                             .size(34.dp)
@@ -124,19 +120,17 @@ fun OnBoardingCardFolded(
                                 rememberSharedContentState(key = "title-${cardData.hashCode()}"),
                                 animatedVisibilityScope = animatedVisibilityScope
                             )
-                    )
-                }
-
-                IconButton(
-                    onClick = { onClick() }
-                ) {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.ic_down_arrow),
-                        contentDescription = "Expand",
-                        modifier = Modifier.size(24.dp)
+                            .weight(1f),
+                        textAlign = TextAlign.Center
                     )
 
-                }
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_down_arrow),
+                    contentDescription = "Expand",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { onClick() }
+                )
             }
         }
     }
