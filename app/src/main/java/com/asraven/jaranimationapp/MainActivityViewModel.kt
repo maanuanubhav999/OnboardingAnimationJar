@@ -3,6 +3,7 @@ package com.asraven.jaranimationapp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.asraven.jaranimationapp.data.remote.EducationCard
+import com.asraven.jaranimationapp.data.remote.SaveButtonCta
 import com.asraven.jaranimationapp.domain.usecase.GetEducationMetadataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +42,13 @@ class MainActivityViewModel @Inject constructor(
                             _uiState.update {
                                 it.copy(
                                     educationItems = onboardingApiResponse.data?.manualBuyEducationData?.educationCardList ?: emptyList(), // Directly assign if it's List<EducationItem>
-                                    educationDataError = null
+                                    educationDataError = null,
+                                    intro = Intro(
+                                        title = onboardingApiResponse.data?.manualBuyEducationData?.introTitle ,
+                                        subTitle = onboardingApiResponse.data?.manualBuyEducationData?.introSubtitle
+                                    ),
+                                    saveButtonCta =  onboardingApiResponse.data?.manualBuyEducationData?.saveButtonCta,
+                                    isLoadingEducationData = false
                                 )
                             }
                         },
@@ -71,5 +78,12 @@ class MainActivityViewModel @Inject constructor(
 data class MainActivityUiState(
     val educationItems: List<EducationCard> = emptyList(),
     val isLoadingEducationData: Boolean = false,
-    val educationDataError: Throwable? = null
+    val educationDataError: Throwable? = null,
+    val intro: Intro? = null,
+    val saveButtonCta: SaveButtonCta? = null,
+)
+
+data class Intro(
+    val title: String?,
+    val subTitle : String?,
 )
