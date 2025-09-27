@@ -26,10 +26,10 @@ fun FloatingButton(
 ) {
     Row(
         modifier = modifier
+            .clickable { onClick() }
             .clip(RoundedCornerShape(32.dp))
             .background(backGroundColor)
-            .padding(vertical = 16.dp, horizontal = 24.dp)
-            .clickable { onClick() },
+            .padding(vertical = 16.dp, horizontal = 24.dp),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center
     ) {
