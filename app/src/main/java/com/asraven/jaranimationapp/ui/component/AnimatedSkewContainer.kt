@@ -24,7 +24,7 @@ fun AnimatedSkewContainer(
     initialSkewY: Float = 0.3f,
     targetSkewX: Float = 0f,
     targetSkewY: Float = 0f,
-    animationDurationMs: Int = 1000,
+    animationDurationMs: Int = 1500,
     animationSpec: AnimationSpec<Float> = tween(durationMillis = animationDurationMs),
     autoStart: Boolean = true,
     content: @Composable () -> Unit

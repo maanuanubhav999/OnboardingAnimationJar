@@ -1,6 +1,5 @@
 package com.asraven.jaranimationapp.ui.component
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -41,6 +40,7 @@ fun OnboardingCardExpended(
     cardData: EducationCard,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
+    isSkewed: Boolean,
 ) {
 
     val gradientColors = listOf(
@@ -51,7 +51,7 @@ fun OnboardingCardExpended(
     with(sharedTransitionScope) {
         AnimatedSkewContainer(
             initialSkewX = 0.0f,
-            initialSkewY = if (animatedVisibilityScope.transition.isSeeking) 0.4f else 0.0f,
+            initialSkewY = if (isSkewed) 0.4f else 0.0f,
         ) {
         Column(
             modifier = modifier
