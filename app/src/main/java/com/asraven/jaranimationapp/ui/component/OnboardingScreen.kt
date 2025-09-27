@@ -45,7 +45,8 @@ import com.asraven.jaranimationapp.utils.toComposeColorOrUnspecified
 @Composable
 fun OnboardingScreen(
     paddingValues: PaddingValues,
-    viewModel: MainActivityViewModel = hiltViewModel()
+    viewModel: MainActivityViewModel = hiltViewModel(),
+    onNavigateToLanding: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val cards = uiState.educationItems
@@ -143,7 +144,7 @@ fun OnboardingScreen(
             if (shouldShowCta){
                 FloatingButton(
                     text = uiState.saveButtonCta?.text ?: "",
-                    onClick = { /* Handle CTA click */ },
+                    onClick = { onNavigateToLanding() },
                     backGroundColor = uiState.saveButtonCta?.backgroundColor.toComposeColorOrUnspecified(),
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp),
                     textColor = uiState.saveButtonCta?.textColor.toComposeColorOrUnspecified()
@@ -184,7 +185,8 @@ fun StickyHeaders2(
 fun ExpandableCardsPreview() {
     MaterialTheme {
         OnboardingScreen(
-            paddingValues = PaddingValues(0.dp)
+            paddingValues = PaddingValues(0.dp),
+            onNavigateToLanding = {} // Added for preview
         )
     }
 }
