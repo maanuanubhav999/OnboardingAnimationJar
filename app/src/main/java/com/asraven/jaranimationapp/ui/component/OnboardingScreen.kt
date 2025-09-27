@@ -1,6 +1,7 @@
 package com.asraven.jaranimationapp.ui.component
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -8,6 +9,8 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -54,6 +57,14 @@ fun OnboardingScreen(
     val introData = uiState.intro
     val saveButtonCta = uiState.saveButtonCta
 
+    val animationEnter = remember(uiState.bottomToCenterInterval) {
+        uiState.bottomToCenterInterval ?: 1500
+    }
+
+    val animationExit = remember(uiState.collapseExpandIntroInterval) {
+        uiState.collapseExpandIntroInterval ?: 500
+    }
+
     var currentExpandedIndex by remember { mutableIntStateOf(0) }
     var showIntro by rememberSaveable(introData) { mutableStateOf(introData?.title != null) }
 
@@ -84,13 +95,12 @@ fun OnboardingScreen(
                 )
             } else {
                 RadialGradientBox()
-
                 AnimatedContent(
                     targetState = currentExpandedIndex,
                     label = "onboardingCardTransition",
                     transitionSpec = {
-                        fadeIn(animationSpec = tween(300)) togetherWith
-                                fadeOut(animationSpec = tween(300))
+                        slideInVertically(animationSpec = tween(animationEnter)) { fullHeight -> fullHeight } + fadeIn(animationSpec = tween(300)) togetherWith
+                                slideOutVertically(animationSpec = tween(animationExit)) { fullHeight -> fullHeight } + fadeOut(animationSpec = tween(300))
                     }
                 ) { targetIndex ->
                     DraggableCardsContent(

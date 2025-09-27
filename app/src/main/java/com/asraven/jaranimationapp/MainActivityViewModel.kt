@@ -48,7 +48,9 @@ class MainActivityViewModel @Inject constructor(
                                         subTitle = onboardingApiResponse.data?.manualBuyEducationData?.introSubtitle
                                     ),
                                     saveButtonCta =  onboardingApiResponse.data?.manualBuyEducationData?.saveButtonCta,
-                                    isLoadingEducationData = false
+                                    isLoadingEducationData = false,
+                                    bottomToCenterInterval = onboardingApiResponse.data?.manualBuyEducationData?.bottomToCenterTranslationInterval,
+                                    collapseExpandIntroInterval = onboardingApiResponse.data?.manualBuyEducationData?.collapseExpandIntroInterval
                                 )
                             }
                         },
@@ -81,6 +83,8 @@ data class MainActivityUiState(
     val educationDataError: Throwable? = null,
     val intro: Intro? = null,
     val saveButtonCta: SaveButtonCta? = null,
+    val bottomToCenterInterval: Int? = null,
+    val collapseExpandIntroInterval: Int? = null,
 )
 
 data class Intro(
