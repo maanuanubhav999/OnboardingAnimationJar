@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -80,48 +81,62 @@ fun OnboardingScreen(
     val rememberedOnCardClick = remember<(Int) -> Unit> { { index -> currentExpandedIndex = index } }
     val rememberedOnIndexChangeByDrag = remember<(Int) -> Unit> { { newIndex -> currentExpandedIndex = newIndex } }
 
-
-    SharedTransitionLayout {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(cards.getOrNull(currentExpandedIndex)?.backGroundColor.toComposeColorOrUnspecified())
-                .padding(paddingValues)
-        ) {
-            if (showIntro && introData != null) {
-                IntroDisplay(
-                    introData = introData,
-                    onDismiss = { showIntro = false }
-                )
-            } else {
-                RadialGradientBox()
-                AnimatedContent(
-                    targetState = currentExpandedIndex,
-                    label = "onboardingCardTransition",
-                    transitionSpec = {
-                        slideInVertically(animationSpec = tween(animationEnter)) { fullHeight -> fullHeight } + fadeIn(animationSpec = tween(300)) togetherWith
-                                slideOutVertically(animationSpec = tween(animationExit)) { fullHeight -> fullHeight } + fadeOut(animationSpec = tween(300))
-                    }
-                ) { targetIndex ->
-                    DraggableCardsContent(
-                        cards = cards,
-                        currentExpandedIndex = targetIndex,
-                        onCardClick = rememberedOnCardClick,
-                        onIndexChangeByDrag = rememberedOnIndexChangeByDrag,
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedVisibilityScope = this@AnimatedContent
-                    )
-                }
+    when(uiState.isLoadingEducationData && cards.isEmpty()) {
+        true -> {
+            Box(Modifier.fillMaxSize()) {
+                LoadingScreen()
             }
+        }
 
-            if (shouldShowCta && saveButtonCta != null){
-                FloatingButton(
-                    text = saveButtonCta.text ?: "",
-                    onClick = rememberedOnNavigateToLanding,
-                    backGroundColor = saveButtonCta.backgroundColor.toComposeColorOrUnspecified(),
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp),
-                    textColor = saveButtonCta.textColor.toComposeColorOrUnspecified()
-                )
+        false -> {
+            SharedTransitionLayout {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(cards.getOrNull(currentExpandedIndex)?.backGroundColor.toComposeColorOrUnspecified())
+                        .padding(paddingValues)
+                ) {
+                    if (showIntro && introData != null) {
+                        IntroDisplay(
+                            introData = introData,
+                            onDismiss = { showIntro = false }
+                        )
+                    } else {
+                        RadialGradientBox()
+                        AnimatedContent(
+                            targetState = currentExpandedIndex,
+                            label = "onboardingCardTransition",
+                            transitionSpec = {
+                                slideInVertically(animationSpec = tween(animationEnter)) { fullHeight -> fullHeight } + fadeIn(
+                                    animationSpec = tween(300)
+                                ) togetherWith
+                                        slideOutVertically(animationSpec = tween(animationExit)) { fullHeight -> fullHeight } + fadeOut(
+                                    animationSpec = tween(300)
+                                )
+                            }
+                        ) { targetIndex ->
+                            DraggableCardsContent(
+                                cards = cards,
+                                currentExpandedIndex = targetIndex,
+                                onCardClick = rememberedOnCardClick,
+                                onIndexChangeByDrag = rememberedOnIndexChangeByDrag,
+                                sharedTransitionScope = this@SharedTransitionLayout,
+                                animatedVisibilityScope = this@AnimatedContent
+                            )
+                        }
+                    }
+
+                    if (shouldShowCta && saveButtonCta != null) {
+                        FloatingButton(
+                            text = saveButtonCta.text ?: "",
+                            onClick = rememberedOnNavigateToLanding,
+                            backGroundColor = saveButtonCta.backgroundColor.toComposeColorOrUnspecified(),
+                            modifier = Modifier.align(Alignment.BottomCenter)
+                                .padding(bottom = 20.dp),
+                            textColor = saveButtonCta.textColor.toComposeColorOrUnspecified()
+                        )
+                    }
+                }
             }
         }
     }
