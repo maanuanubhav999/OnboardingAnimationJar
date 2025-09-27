@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,7 +55,7 @@ fun OnboardingScreen(
 
     var currentExpandedIndex by remember { mutableIntStateOf(0) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
-    var showIntro by remember(introData) { mutableStateOf(introData?.title != null) } // Show intro if title exists
+    var showIntro by rememberSaveable(introData) { mutableStateOf(introData?.title != null) } // Show intro if title exists
 
     val shouldShowCta by remember(currentExpandedIndex) {
         derivedStateOf {
