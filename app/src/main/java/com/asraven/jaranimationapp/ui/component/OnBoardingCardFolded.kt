@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -85,44 +86,28 @@ fun OnBoardingCardFolded(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                FoldedCardImage(
+                    imageUrl = cardData.image,
+                    contentDescription = "Character avatar",
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    imageKey = cardData.hashCode().toString()
+                )
 
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                    ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(cardData.image)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "Character avatar",
-                            modifier = Modifier
-                                .sharedElement(
-                                    rememberSharedContentState(key = "image-${cardData.hashCode()}"),
-                                    animatedVisibilityScope = animatedVisibilityScope
-                                )
-                                .fillMaxSize()
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    Text(
-                        text = cardData.collapsedStateText ?: "",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        ),
-                        color = Color.White,
-                        maxLines = 1,
-                        modifier = Modifier
-                            .sharedElement(
-                                rememberSharedContentState(key = "title-${cardData.hashCode()}"),
-                                animatedVisibilityScope = animatedVisibilityScope
-                            )
-                            .weight(1f),
-                        textAlign = TextAlign.Center
-                    )
+                FoldedCardTitle(
+                    text = cardData.collapsedStateText ?: "",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    ),
+                    color = Color.White,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    titleKey = cardData.hashCode().toString()
+                )
 
                 Image(
                     imageVector = ImageVector.vectorResource(R.drawable.ic_down_arrow),
@@ -135,6 +120,70 @@ fun OnBoardingCardFolded(
         }
     }
 }
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun FoldedCardImage(
+    imageUrl: String?,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    imageKey: String
+) {
+    with(sharedTransitionScope) {
+        Box(
+            modifier = modifier
+                .size(34.dp)
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = contentDescription,
+                modifier = Modifier
+                    .sharedElement(
+                        rememberSharedContentState(key = "image-$imageKey"),
+                        animatedVisibilityScope = animatedVisibilityScope
+                    )
+                    .fillMaxSize()
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun FoldedCardTitle(
+    text: String,
+    style: TextStyle,
+    color: Color,
+    maxLines: Int,
+    textAlign: TextAlign,
+    modifier: Modifier = Modifier,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    titleKey: String
+) {
+    with(sharedTransitionScope) {
+        Text(
+            text = text,
+            style = style,
+            color = color,
+            maxLines = maxLines,
+            modifier = modifier
+                .sharedElement(
+                    rememberSharedContentState(key = "title-$titleKey"),
+                    animatedVisibilityScope = animatedVisibilityScope
+                ),
+            textAlign = textAlign
+        )
+    }
+}
+
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)

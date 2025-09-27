@@ -1,5 +1,7 @@
 package com.asraven.jaranimationapp.data.remote
 
+import androidx.compose.runtime.Stable
+
 data class OnboardingApiResponse(
     val `data`: Data?,
     val success: Boolean?
@@ -31,6 +33,7 @@ data class ManualBuyEducationData(
     val toolBarText: String?
 )
 
+@Stable
 data class EducationCard(
     val backGroundColor: String?,
     val collapsedStateText: String?,

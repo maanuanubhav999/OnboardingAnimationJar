@@ -51,19 +51,24 @@ fun OnboardingScreen(
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val cards = uiState.educationItems
-    val introData = uiState.intro // Assuming introData is of a type that has .saveButtonCta and .title
+    val introData = uiState.intro
+    val saveButtonCta = uiState.saveButtonCta
 
     var currentExpandedIndex by remember { mutableIntStateOf(0) }
-    var dragOffset by remember { mutableFloatStateOf(0f) }
-    var showIntro by rememberSaveable(introData) { mutableStateOf(introData?.title != null) } // Show intro if title exists
+    var showIntro by rememberSaveable(introData) { mutableStateOf(introData?.title != null) }
 
-    val shouldShowCta by remember(currentExpandedIndex) {
+    val shouldShowCta by remember(currentExpandedIndex, cards.size, saveButtonCta) {
         derivedStateOf {
             val isLastCard = cards.isNotEmpty() && currentExpandedIndex == cards.size - 1
-            val ctaAvailable = uiState.saveButtonCta != null
+            val ctaAvailable = saveButtonCta != null
             isLastCard && ctaAvailable
         }
     }
+
+    val rememberedOnNavigateToLanding = rememberUpdatedLambda(onNavigateToLanding)
+    val rememberedOnCardClick = remember<(Int) -> Unit> { { index -> currentExpandedIndex = index } }
+    val rememberedOnIndexChangeByDrag = remember<(Int) -> Unit> { { newIndex -> currentExpandedIndex = newIndex } }
+
 
     SharedTransitionLayout {
         Box(
@@ -71,7 +76,6 @@ fun OnboardingScreen(
                 .fillMaxSize()
                 .background(cards.getOrNull(currentExpandedIndex)?.backGroundColor.toComposeColorOrUnspecified())
                 .padding(paddingValues)
-
         ) {
             if (showIntro && introData != null) {
                 IntroDisplay(
@@ -89,71 +93,91 @@ fun OnboardingScreen(
                                 fadeOut(animationSpec = tween(300))
                     }
                 ) { targetIndex ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .pointerInput(Unit) {
-                                detectDragGestures(
-                                    onDragEnd = {
-                                        val threshold = 100f
-                                        when {
-                                            dragOffset > threshold && currentExpandedIndex > 0 -> {
-                                                currentExpandedIndex -= 1
-                                            }
-
-                                            dragOffset < -threshold && currentExpandedIndex < cards.size - 1 -> {
-                                                currentExpandedIndex += 1
-                                            }
-                                        }
-                                        dragOffset = 0f
-                                    }
-                                ) { _, dragAmount ->
-                                    dragOffset += dragAmount.y
-                                }
-                            }
-                    ) {
-                        StickyHeaders2(
-                            cards = cards,
-                            currentExpandedIndex = targetIndex,
-                            onCardClick = { index ->
-                                currentExpandedIndex = index
-                            },
-                            sharedTransitionScope = this@SharedTransitionLayout,
-                            animatedVisibilityScope = this@AnimatedContent,
-                        )
-
-                        if (cards.isNotEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                                    .padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                OnboardingCardExpended(
-                                    cardData = cards[targetIndex],
-                                    modifier = Modifier.fillMaxWidth(),
-                                    sharedTransitionScope = this@SharedTransitionLayout,
-                                    animatedVisibilityScope = this@AnimatedContent,
-                                )
-                            }
-                        }
-                    }
+                    DraggableCardsContent(
+                        cards = cards,
+                        currentExpandedIndex = targetIndex,
+                        onCardClick = rememberedOnCardClick,
+                        onIndexChangeByDrag = rememberedOnIndexChangeByDrag,
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@AnimatedContent
+                    )
                 }
             }
 
-            if (shouldShowCta){
+            if (shouldShowCta && saveButtonCta != null){
                 FloatingButton(
-                    text = uiState.saveButtonCta?.text ?: "",
-                    onClick = { onNavigateToLanding() },
-                    backGroundColor = uiState.saveButtonCta?.backgroundColor.toComposeColorOrUnspecified(),
+                    text = saveButtonCta.text ?: "",
+                    onClick = rememberedOnNavigateToLanding,
+                    backGroundColor = saveButtonCta.backgroundColor.toComposeColorOrUnspecified(),
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp),
-                    textColor = uiState.saveButtonCta?.textColor.toComposeColorOrUnspecified()
+                    textColor = saveButtonCta.textColor.toComposeColorOrUnspecified()
                 )
             }
         }
     }
 }
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+private fun DraggableCardsContent(
+    cards: List<EducationCard>,
+    currentExpandedIndex: Int,
+    onCardClick: (Int) -> Unit,
+    onIndexChangeByDrag: (Int) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
+) {
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(cards.size) { // Key on cards.size or a stable key if cards can change
+                detectDragGestures(
+                    onDragEnd = {
+                        val threshold = 100f
+                        val newIndex = when {
+                            dragOffset > threshold && currentExpandedIndex > 0 -> currentExpandedIndex - 1
+                            dragOffset < -threshold && currentExpandedIndex < cards.size - 1 -> currentExpandedIndex + 1
+                            else -> currentExpandedIndex
+                        }
+                        if (newIndex != currentExpandedIndex) {
+                            onIndexChangeByDrag(newIndex)
+                        }
+                        dragOffset = 0f
+                    }
+                ) { _, dragAmount ->
+                    dragOffset += dragAmount.y
+                }
+            }
+    ) {
+        StickyHeaders2(
+            cards = cards,
+            currentExpandedIndex = currentExpandedIndex,
+            onCardClick = onCardClick,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = animatedVisibilityScope,
+        )
+
+        if (cards.isNotEmpty() && currentExpandedIndex < cards.size) { // Ensure index is valid
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                OnboardingCardExpended(
+                    cardData = cards[currentExpandedIndex],
+                    modifier = Modifier.fillMaxWidth(),
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                )
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -170,9 +194,10 @@ fun StickyHeaders2(
                 .fillMaxWidth()
         ) {
             cards.take(currentExpandedIndex).forEachIndexed { index, card ->
+                val rememberedOnCardClickedForItem = remember(card, index, onCardClick) { { onCardClick(index) } }
                 OnBoardingCardFolded(
                     cardData = card,
-                    onClick = { onCardClick(index) },
+                    onClick = rememberedOnCardClickedForItem,
                     sharedTransitionScope = sharedTransitionScope,
                     animatedVisibilityScope = animatedVisibilityScope,
                 )
@@ -181,13 +206,9 @@ fun StickyHeaders2(
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun ExpandableCardsPreview() {
-    MaterialTheme {
-        OnboardingScreen(
-            paddingValues = PaddingValues(0.dp),
-            onNavigateToLanding = {} // Added for preview
-        )
-    }
+fun <T> rememberUpdatedLambda(value: T): T {
+    val valueRef = remember { mutableStateOf(value) }
+    valueRef.value = value
+    return valueRef.value
 }
