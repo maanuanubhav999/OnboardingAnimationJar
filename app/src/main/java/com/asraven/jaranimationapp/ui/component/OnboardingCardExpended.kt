@@ -1,5 +1,6 @@
 package com.asraven.jaranimationapp.ui.component
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -48,6 +49,10 @@ fun OnboardingCardExpended(
     )
 
     with(sharedTransitionScope) {
+        AnimatedSkewContainer(
+            initialSkewX = 0.0f,
+            initialSkewY = if (animatedVisibilityScope.transition.isSeeking) 0.4f else 0.0f,
+        ) {
         Column(
             modifier = modifier
                 .sharedBounds(
@@ -103,6 +108,7 @@ fun OnboardingCardExpended(
                     titleKey = cardData.hashCode().toString()
                 )
             }
+        }
         }
     }
 }
