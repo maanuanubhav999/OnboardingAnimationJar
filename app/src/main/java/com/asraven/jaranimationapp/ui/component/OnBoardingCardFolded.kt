@@ -66,7 +66,7 @@ fun OnBoardingCardFolded(
                 )
                 .fillMaxWidth()
                 .clickable { onClick() }
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
                 .clip(RoundedCornerShape(28.dp))
                 .background(
                     brush = Brush.radialGradient(
