@@ -1,6 +1,7 @@
 package com.asraven.jaranimationapp.ui.component
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -29,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,7 +60,7 @@ fun OnboardingScreen(
     }
 
     var currentExpandedIndex by remember { mutableIntStateOf(0) }
-    var showIntro by rememberSaveable(introData) { mutableStateOf(introData?.title != null) }
+    var showIntroScreen by rememberSaveable(introData) { mutableStateOf(introData?.title != null) }
 
     val shouldShowCta by remember(currentExpandedIndex, cards.size, saveButtonCta) {
         derivedStateOf {
@@ -70,7 +72,6 @@ fun OnboardingScreen(
 
     val rememberedOnNavigateToLanding = rememberUpdatedLambda(onNavigateToLanding)
     val rememberedOnCardClick = remember<(Int) -> Unit> { { index -> currentExpandedIndex = index } }
-
     val rememberedOnAutoAdvance = remember<(Int) -> Unit> { { newIndex -> currentExpandedIndex = newIndex } }
 
     when(uiState.isLoadingEducationData && cards.isEmpty()) {
@@ -85,40 +86,60 @@ fun OnboardingScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(cards.getOrNull(currentExpandedIndex)?.backGroundColor.toComposeColorOrUnspecified())
+                        .background(
+                            if (!showIntroScreen && cards.isNotEmpty()) {
+                                cards.getOrNull(currentExpandedIndex)?.backGroundColor.toComposeColorOrUnspecified()
+                            }
+                            else if (showIntroScreen && introData != null) {
+                               "#201929".toComposeColorOrUnspecified()
+                            }
+                            else {
+                                Color.Transparent
+                            }
+                        )
                         .padding(paddingValues)
                 ) {
-                    if (showIntro && introData != null) {
+                    if (showIntroScreen && introData != null) {
                         IntroDisplay(
                             introData = introData,
-                            onDismiss = { showIntro = false }
+                            onDismiss = {
+                                showIntroScreen = false
+                            }
                         )
-                    } else {
-                        RadialGradientBox()
-                        AnimatedContent(
-                            targetState = currentExpandedIndex,
-                            label = "onboardingCardTransition",
-                            transitionSpec = {
-                                slideInVertically(animationSpec = tween(animationEnter)) { fullHeight -> fullHeight } + fadeIn(
-                                    animationSpec = tween(300)
-                                ) togetherWith
-                                        slideOutVertically(animationSpec = tween(animationExit)) { fullHeight -> fullHeight } + fadeOut(
-                                    animationSpec = tween(300)
+                    }
+
+                    AnimatedVisibility(
+                        visible = !showIntroScreen && cards.isNotEmpty(),
+                        enter = slideInVertically(animationSpec = tween(animationEnter)) { fullHeight -> fullHeight } +
+                                fadeIn(animationSpec = tween(animationEnter)),
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            RadialGradientBox()
+                            AnimatedContent(
+                                targetState = currentExpandedIndex,
+                                label = "onboardingCardTransition",
+                                transitionSpec = {
+                                    slideInVertically(animationSpec = tween(animationEnter)) { fullHeight -> fullHeight } + fadeIn(
+                                        animationSpec = tween(300)
+                                    ) togetherWith
+                                            slideOutVertically(animationSpec = tween(animationExit)) { fullHeight -> fullHeight } + fadeOut(
+                                        animationSpec = tween(300)
+                                    )
+                                }
+                            ) { targetIndex ->
+                                CardsContent(
+                                    cards = cards,
+                                    currentExpandedIndex = targetIndex,
+                                    onCardClick = rememberedOnCardClick,
+                                    onAutoAdvance = rememberedOnAutoAdvance,
+                                    sharedTransitionScope = this@SharedTransitionLayout,
+                                    animatedVisibilityScope = this@AnimatedContent // Scope from AnimatedContent
                                 )
                             }
-                        ) { targetIndex ->
-                            CardsContent( // Renamed from DraggableCardsContent for clarity
-                                cards = cards,
-                                currentExpandedIndex = targetIndex,
-                                onCardClick = rememberedOnCardClick, // For expanding collapsed cards
-                                onAutoAdvance = rememberedOnAutoAdvance, // For automatic transitions
-                                sharedTransitionScope = this@SharedTransitionLayout,
-                                animatedVisibilityScope = this@AnimatedContent
-                            )
                         }
                     }
 
-                    if (shouldShowCta && saveButtonCta != null) {
+                    if (!showIntroScreen && shouldShowCta && saveButtonCta != null) {
                         FloatingButton(
                             text = saveButtonCta.text ?: "",
                             onClick = rememberedOnNavigateToLanding,
