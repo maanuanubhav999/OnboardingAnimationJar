@@ -12,7 +12,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,9 +19,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,13 +29,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.asraven.jaranimationapp.MainActivityViewModel
 import com.asraven.jaranimationapp.data.remote.EducationCard
 import com.asraven.jaranimationapp.utils.toComposeColorOrUnspecified
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -71,7 +70,8 @@ fun OnboardingScreen(
 
     val rememberedOnNavigateToLanding = rememberUpdatedLambda(onNavigateToLanding)
     val rememberedOnCardClick = remember<(Int) -> Unit> { { index -> currentExpandedIndex = index } }
-    val rememberedOnIndexChangeByDrag = remember<(Int) -> Unit> { { newIndex -> currentExpandedIndex = newIndex } }
+
+    val rememberedOnAutoAdvance = remember<(Int) -> Unit> { { newIndex -> currentExpandedIndex = newIndex } }
 
     when(uiState.isLoadingEducationData && cards.isEmpty()) {
         true -> {
@@ -107,11 +107,11 @@ fun OnboardingScreen(
                                 )
                             }
                         ) { targetIndex ->
-                            DraggableCardsContent(
+                            CardsContent( // Renamed from DraggableCardsContent for clarity
                                 cards = cards,
                                 currentExpandedIndex = targetIndex,
-                                onCardClick = rememberedOnCardClick,
-                                onIndexChangeByDrag = rememberedOnIndexChangeByDrag,
+                                onCardClick = rememberedOnCardClick, // For expanding collapsed cards
+                                onAutoAdvance = rememberedOnAutoAdvance, // For automatic transitions
                                 sharedTransitionScope = this@SharedTransitionLayout,
                                 animatedVisibilityScope = this@AnimatedContent
                             )
@@ -136,37 +136,26 @@ fun OnboardingScreen(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun DraggableCardsContent(
+private fun CardsContent( // Renamed from DraggableCardsContent
     cards: List<EducationCard>,
     currentExpandedIndex: Int,
-    onCardClick: (Int) -> Unit,
-    onIndexChangeByDrag: (Int) -> Unit,
+    onCardClick: (Int) -> Unit, // This will be used by StickyHeaders2 to expand a card
+    onAutoAdvance: (Int) -> Unit, // Callback to change the index automatically
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
-    var dragOffset by remember { mutableFloatStateOf(0f) }
+
+    // Automatically advance to the next card after 3000ms
+    LaunchedEffect(currentExpandedIndex, cards.size) {
+        if (cards.isNotEmpty() && currentExpandedIndex < cards.size - 1) {
+            delay(3000L)
+            onAutoAdvance(currentExpandedIndex + 1)
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(cards.size) { // Key on cards.size or a stable key if cards can change
-                detectDragGestures(
-                    onDragEnd = {
-                        val threshold = 100f
-                        val newIndex = when {
-                            dragOffset > threshold && currentExpandedIndex > 0 -> currentExpandedIndex - 1
-                            dragOffset < -threshold && currentExpandedIndex < cards.size - 1 -> currentExpandedIndex + 1
-                            else -> currentExpandedIndex
-                        }
-                        if (newIndex != currentExpandedIndex) {
-                            onIndexChangeByDrag(newIndex)
-                        }
-                        dragOffset = 0f
-                    }
-                ) { _, dragAmount ->
-                    dragOffset += dragAmount.y
-                }
-            }
     ) {
         StickyHeaders2(
             cards = cards,
