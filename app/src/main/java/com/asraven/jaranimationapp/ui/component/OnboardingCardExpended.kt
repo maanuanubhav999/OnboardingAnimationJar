@@ -40,7 +40,6 @@ fun OnboardingCardExpended(
     cardData: EducationCard,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    isSkewed: Boolean,
 ) {
 
     val gradientColors = listOf(
@@ -51,7 +50,7 @@ fun OnboardingCardExpended(
     with(sharedTransitionScope) {
         AnimatedSkewContainer(
             initialSkewX = 0.0f,
-            initialSkewY = if (isSkewed) 0.4f else 0.0f,
+            initialSkewY =  0.4f,
         ) {
         Column(
             modifier = modifier

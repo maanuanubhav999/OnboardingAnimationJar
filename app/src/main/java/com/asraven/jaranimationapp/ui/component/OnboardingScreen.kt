@@ -195,7 +195,6 @@ private fun CardsContent( // Renamed from DraggableCardsContent
                 contentAlignment = Alignment.Center
             ) {
                 OnboardingCardExpended(
-                    isSkewed  = currentExpandedIndex != 0,
                     cardData = cards[currentExpandedIndex],
                     modifier = Modifier.fillMaxWidth(),
                     sharedTransitionScope = sharedTransitionScope,
