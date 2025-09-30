@@ -140,14 +140,17 @@ fun OnboardingScreen(
                         }
                     }
 
-                    if (!showIntroScreen && shouldShowCta && saveButtonCta != null) {
+                    AnimatedVisibility  (
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                            .padding(bottom = 20.dp),
+                        visible = !showIntroScreen && shouldShowCta && saveButtonCta != null,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 300, delayMillis = 2000)))
+                    {
                         FloatingButton(
-                            text = saveButtonCta.text ?: "",
+                            text = saveButtonCta?.text ?: "",
                             onClick = rememberedOnNavigateToLanding,
-                            backGroundColor = saveButtonCta.backgroundColor.toComposeColorOrUnspecified(),
-                            modifier = Modifier.align(Alignment.BottomCenter)
-                                .padding(bottom = 20.dp),
-                            textColor = saveButtonCta.textColor.toComposeColorOrUnspecified()
+                            backGroundColor = saveButtonCta?.backgroundColor.toComposeColorOrUnspecified(),
+                            textColor = saveButtonCta?.textColor.toComposeColorOrUnspecified()
                         )
                     }
                 }
