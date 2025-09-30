@@ -31,7 +31,12 @@ fun IntroDisplay(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .clickable { onDismiss() } // Dismiss on click
+            .clickable(
+                interactionSource = null,
+                indication = null,
+            ){
+                onDismiss()
+            }
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
