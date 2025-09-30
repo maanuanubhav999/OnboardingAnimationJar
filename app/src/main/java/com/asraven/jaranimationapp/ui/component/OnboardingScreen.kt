@@ -191,8 +191,11 @@ private fun CardsContent( // Renamed from DraggableCardsContent
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.Center
+                    .padding(
+                        horizontal = 16.dp,
+                        vertical = if (currentExpandedIndex > 0) 12.dp else 6.dp
+                    ),
+                contentAlignment = if (currentExpandedIndex == 0) Alignment.Center else Alignment.TopCenter
             ) {
                 OnboardingCardExpended(
                     cardData = cards[currentExpandedIndex],
