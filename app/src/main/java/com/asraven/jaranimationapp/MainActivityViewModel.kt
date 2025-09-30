@@ -50,7 +50,8 @@ class MainActivityViewModel @Inject constructor(
                                     saveButtonCta =  onboardingApiResponse.data?.manualBuyEducationData?.saveButtonCta,
                                     isLoadingEducationData = false,
                                     bottomToCenterInterval = onboardingApiResponse.data?.manualBuyEducationData?.bottomToCenterTranslationInterval,
-                                    collapseExpandIntroInterval = onboardingApiResponse.data?.manualBuyEducationData?.collapseExpandIntroInterval
+                                    collapseExpandIntroInterval = onboardingApiResponse.data?.manualBuyEducationData?.collapseExpandIntroInterval,
+                                    expandCardStayInterval = onboardingApiResponse.data?.manualBuyEducationData?.expandCardStayInterval?.toLong() ?: 3000L
                                 )
                             }
                         },
@@ -85,6 +86,7 @@ data class MainActivityUiState(
     val saveButtonCta: SaveButtonCta? = null,
     val bottomToCenterInterval: Int? = null,
     val collapseExpandIntroInterval: Int? = null,
+    val expandCardStayInterval: Long = 3000L,
 )
 
 data class Intro(

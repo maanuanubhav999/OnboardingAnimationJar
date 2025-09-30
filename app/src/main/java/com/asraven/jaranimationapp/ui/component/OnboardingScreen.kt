@@ -133,7 +133,8 @@ fun OnboardingScreen(
                                     onCardClick = rememberedOnCardClick,
                                     onAutoAdvance = rememberedOnAutoAdvance,
                                     sharedTransitionScope = this@SharedTransitionLayout,
-                                    animatedVisibilityScope = this@AnimatedContent // Scope from AnimatedContent
+                                    animatedVisibilityScope = this@AnimatedContent ,
+                                    expandCardStayInterval = uiState.expandCardStayInterval
                                 )
                             }
                         }
@@ -163,13 +164,13 @@ private fun CardsContent( // Renamed from DraggableCardsContent
     onCardClick: (Int) -> Unit, // This will be used by StickyHeaders2 to expand a card
     onAutoAdvance: (Int) -> Unit, // Callback to change the index automatically
     sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    expandCardStayInterval: Long
 ) {
 
-    // Automatically advance to the next card after 3000ms
     LaunchedEffect(currentExpandedIndex, cards.size) {
         if (cards.isNotEmpty() && currentExpandedIndex < cards.size - 1) {
-            delay(3000L)
+            delay(expandCardStayInterval)
             onAutoAdvance(currentExpandedIndex + 1)
         }
     }
